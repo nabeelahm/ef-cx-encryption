@@ -33,7 +33,7 @@
 	<scm>
 		<connection>scm:git:git://github.com/nabeelahm/ef-cx-encryption.git</connection>
 		<developerConnection>scm:git:ssh://github.com/nabeelahm/ef-cx-encryption.git</developerConnection>
-		<url>https://github.com/expertflow/cx-encryption</url>
+		<url>https://github.com/nabeelahm/ef-cx-encryption</url>
 	</scm>
 
 	<properties>
