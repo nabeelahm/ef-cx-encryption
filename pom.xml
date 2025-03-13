@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.expertflow</groupId>
 	<artifactId>ef-cx-encryption</artifactId>
-	<version>0.3-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>ef-cx-encryption</name>
 	<description>Encryption library</description>
 

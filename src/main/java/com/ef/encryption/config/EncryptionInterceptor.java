@@ -39,8 +39,12 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
         if (!enableEncryption) {
             return entity;
         }
-        log.info("Starting encryption processing for collection '{}'.", collection);
         List<String> fieldPaths = schemaService.getEncryptableFields(collection);
+        if(fieldPaths.isEmpty()) {
+            return entity;
+        }
+
+        log.info("Starting encryption processing for collection '{}'.", collection);
         log.debug("Encryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
@@ -60,8 +64,12 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
         if (!enableEncryption) {
             return entity;
         }
-        log.info("Starting decryption processing for collection '{}'.", collection);
         List<String> fieldPaths = schemaService.getEncryptableFields(collection);
+        if(fieldPaths.isEmpty()) {
+            return entity;
+        }
+
+        log.info("Starting decryption processing for collection '{}'.", collection);
         log.debug("Decryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
