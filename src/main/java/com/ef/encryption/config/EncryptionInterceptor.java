@@ -44,7 +44,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return entity;
         }
 
-        log.info("Starting encryption processing for collection '{}'.", collection);
+        log.debug("Starting encryption processing for collection '{}'.", collection);
         log.debug("Encryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
@@ -55,7 +55,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
                 throw new RuntimeException(e);
             }
         }
-        log.info("Completed encryption processing for collection '{}'.", collection);
+        log.debug("Completed encryption processing for collection '{}'.", collection);
         return entity;
     }
 
@@ -69,7 +69,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return entity;
         }
 
-        log.info("Starting decryption processing for collection '{}'.", collection);
+        log.debug("Starting decryption processing for collection '{}'.", collection);
         log.debug("Decryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
@@ -80,7 +80,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
                 throw new RuntimeException(e);
             }
         }
-        log.info("Completed decryption processing for collection '{}'.", collection);
+        log.debug("Completed decryption processing for collection '{}'.", collection);
         return entity;
     }
 
@@ -89,7 +89,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
         log.debug("Processing field path '{}' for {} in collection '{}'.", path,
                 isEncryption ? "encryption" : "decryption", collection);
         if (shouldSkipDocument(collection, entity)) {
-            log.info("Global conditions triggered; skipping {} for collection '{}'.",
+            log.debug("Global conditions triggered; skipping {} for collection '{}'.",
                     isEncryption ? "encryption" : "decryption", collection);
             return;
         }
