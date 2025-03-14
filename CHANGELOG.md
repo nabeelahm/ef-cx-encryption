@@ -9,4 +9,8 @@
 
 ## [1.0.1] - 2025-03-14
 ### Updated
-- Change all logs to debug in EncryptionInterceptor.
+- Changed all logs to debug in EncryptionInterceptor.
+
+## [1.0.2] - 2025-03-14
+### Updated
+- Removed excessive logging.

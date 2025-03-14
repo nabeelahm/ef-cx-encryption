@@ -44,18 +44,14 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return entity;
         }
 
-        log.debug("Starting encryption processing for collection '{}'.", collection);
-        log.debug("Encryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
-                log.debug("Processing encryption for field path: {}", path);
                 processFieldPath(entity, path, collection, true);
             } catch (Exception e) {
                 log.error("Error processing encryption for path '{}'.", path, e);
                 throw new RuntimeException(e);
             }
         }
-        log.debug("Completed encryption processing for collection '{}'.", collection);
         return entity;
     }
 
@@ -69,32 +65,23 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return entity;
         }
 
-        log.debug("Starting decryption processing for collection '{}'.", collection);
-        log.debug("Decryption field paths: {}", fieldPaths);
         for (String path : fieldPaths) {
             try {
-                log.debug("Processing decryption for field path: {}", path);
                 processFieldPath(entity, path, collection, false);
             } catch (Exception e) {
                 log.error("Error processing decryption for path '{}'.", path, e);
                 throw new RuntimeException(e);
             }
         }
-        log.debug("Completed decryption processing for collection '{}'.", collection);
         return entity;
     }
 
     private void processFieldPath(Object entity, String path, String collection, boolean isEncryption)
             throws Exception {
-        log.debug("Processing field path '{}' for {} in collection '{}'.", path,
-                isEncryption ? "encryption" : "decryption", collection);
         if (shouldSkipDocument(collection, entity)) {
-            log.debug("Global conditions triggered; skipping {} for collection '{}'.",
-                    isEncryption ? "encryption" : "decryption", collection);
             return;
         }
         String[] parts = path.split("\\.");
-        log.debug("Split field path into {} parts.", parts.length);
         processRecursive(entity, parts, 0, collection, isEncryption);
     }
 
@@ -104,7 +91,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return;
         }
         String key = parts[index];
-        log.debug("Recursion level {}: processing key '{}'.", index, key);
         if (obj instanceof Map) {
             processMap((Map<?, ?>) obj, parts, index, collection, isEncryption);
         } else {
@@ -117,7 +103,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             throws Exception {
         Map<Object, Object> map = (Map<Object, Object>) rawMap;
         if (!map.containsKey(parts[index])) {
-            log.debug("Key '{}' not found in map.", parts[index]);
             return;
         }
         Object value = map.get(parts[index]);
@@ -125,7 +110,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return;
         }
         if (index == parts.length - 1) {
-            log.debug("Processing leaf node for map key '{}'.", parts[index]);
             processLeafForMap(map, parts[index], value, isEncryption);
         } else {
             if (value instanceof List<?> list) {
@@ -142,7 +126,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             throws Exception {
         Field field = getField(obj.getClass(), parts[index]);
         if (field == null) {
-            log.debug("Field '{}' not found in class {}.", parts[index], obj.getClass().getName());
             return;
         }
         field.setAccessible(true);
@@ -151,7 +134,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return;
         }
         if (index == parts.length - 1) {
-            log.debug("Processing leaf node for POJO field '{}'.", parts[index]);
             processLeafForPojo(obj, field, parts[index], fieldValue, isEncryption);
         } else {
             if (fieldValue instanceof List<?> list) {
@@ -171,7 +153,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             processListLeaf(key, (List<Object>) list, isEncryption);
         } else {
             Object processed = processLeafValue(value, isEncryption, value.getClass());
-            log.debug("{} map field '{}' (leaf node) processed.", isEncryption ? "Encrypting" : "Decrypting", key);
             map.put(key, Objects.requireNonNullElse(processed, ""));
         }
     }
@@ -183,7 +164,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             processListLeaf(key, (List<Object>) list, isEncryption);
         } else {
             Object processed = processLeafValue(value, isEncryption, value.getClass());
-            log.debug("{} POJO field '{}' (leaf node) processed.", isEncryption ? "Encrypting" : "Decrypting", key);
             field.set(obj, Objects.requireNonNullElse(processed, ""));
         }
     }
@@ -196,8 +176,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
                 continue;
             }
             Object processed = processLeafValue(item, isEncryption, item.getClass());
-            log.debug("{} list item for key '{}' at index {} processed.",
-                    isEncryption ? "Encrypting" : "Decrypting", key, i);
             list.set(i, Objects.requireNonNullElse(processed, ""));
         }
     }
@@ -262,7 +240,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             Object value = entry.getValue();
             if (value instanceof String item) {
                 entry.setValue(processString(item, isEncryption));
-                log.debug("Processed Map key '{}' value.", entry.getKey());
             } else {
                 recursivelyProcessObject(value, isEncryption, visitedObjects);
             }
@@ -276,7 +253,6 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             Object item = list.get(i);
             if (item instanceof String value) {
                 objList.set(i, processString(value, isEncryption));
-                log.debug("Processed List item at index {}.", i);
             } else {
                 recursivelyProcessObject(item, isEncryption, visitedObjects);
             }
@@ -349,11 +325,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             boolean failsNotSkip = schema.getNotSkipIf().entrySet().stream()
                     .anyMatch(entry -> {
                         Object fieldValue = getNestedFieldValue(document, entry.getKey());
-                        boolean fails = fieldValue == null || !entry.getValue().contains(fieldValue.toString());
-                        if (fails) {
-                            log.debug("Document fails notSkipIf rule for '{}'.", entry.getKey());
-                        }
-                        return fails;
+                        return fieldValue == null || !entry.getValue().contains(fieldValue.toString());
                     });
             if (failsNotSkip) {
                 return true;
@@ -363,11 +335,7 @@ public class EncryptionInterceptor implements BeforeConvertCallback<Object>, Aft
             return schema.getSkipIf().entrySet().stream()
                     .anyMatch(entry -> {
                         Object fieldValue = getNestedFieldValue(document, entry.getKey());
-                        boolean trigger = fieldValue != null && entry.getValue().contains(fieldValue.toString());
-                        if (trigger) {
-                            log.debug("Document matches skipIf rule for '{}'.", entry.getKey());
-                        }
-                        return trigger;
+                        return fieldValue != null && entry.getValue().contains(fieldValue.toString());
                     });
         }
         return false;
